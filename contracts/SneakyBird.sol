@@ -45,7 +45,7 @@ contract SneakyBird is ERC721URIStorage, Ownable, VRFConsumerBase {
   // This next function is the main function to create an NFT, once the function is called then...
   // it makes a requestRandomness to Chainlink VRF and the response is a callback to the next function called fulfillRandomness.
 
-  function createNFT(string memory tokenURI, uint256 _quantity) public payable returns (bytes32) {
+  function createNFT(uint256 _quantity) public payable returns (bytes32) {
     require(isPublicMintEnabled, 'Minting is not enabled yet');
     require(msg.value == _quantity * mintPrice, 'Wrong mint Price');
     require(tokenCounter + _quantity <= maxSupply, 'Collection is Sold Out');
@@ -55,7 +55,6 @@ contract SneakyBird is ERC721URIStorage, Ownable, VRFConsumerBase {
       bytes32 requestId = requestRandomness(keyHash, fee);
       requestIdToSender[requestId] = msg.sender;
       emit requestedNFT(requestId); // for testing purposes only
-      return requestId;
     }
   }
 
@@ -72,12 +71,11 @@ contract SneakyBird is ERC721URIStorage, Ownable, VRFConsumerBase {
     } else {
       tokenIdToMaterial[newItemId] = Material(0);
     }
-    setTokenURI(newItemId, tokenURI);
     requestIdToTokenId[requestId] = newItemId;
     tokenCounter = tokenCounter + 1;
   }
 
-  function setTokenURI(uint256 tokenId, string _tokenURI) public {
+  function setTokenURI(uint256 tokenId, string memory _tokenURI) public {
     require(
       _isApprovedOrOwner(_msgSender(), tokenId),
       'ERC721: transfer caller is not owner nor approved'
